@@ -1,257 +1,254 @@
-# Engineering Prompt Optimizer Skill
+# OPRP Prompt Optimizer 使用流程
 
-Verdict: this skill is for prompt systems that can be tested. It is not for polishing decorative phrases like "act as a professional assistant."
+OPRP Prompt Optimizer 是一个用于“优化提示词”的 Codex Skill。它不是把一句话简单润色成另一句话，而是通过多轮“理解需求、发现缺口、补充材料、审查风险、重写提示词、最终合成”的流程，把粗糙的口语化 prompt 变成适合复杂任务、长任务和多文件任务的强提示词。
 
-`engineering-prompt-optimizer` turns a rough meta-prompt into an evaluation-first engineering prompt package:
+适合使用的场景包括：复杂编程、论文写作、文献综述、数据分析、报告生成、RAG、Agent 工作流、长期自动化任务、Codex 项目开发、多文件重构、提示词工程方案设计等。
 
-- requirement induction
-- task signature
-- metric
-- golden input/output cases
-- RAG or Agent module map
-- short, standard, and strong-generator prompt variants
-- local-model breakpoint plan
-- judge prompt
-- decision trace summary
+## 第一步：安装 Skill
 
-It uses a sharp review style by design. It calls out vague requirements, missing metrics, bad architecture assumptions, token waste, and no-foundation vibe coding.
-
-## Repository Layout
-
-If possible, put this repository's contents at the GitHub repository root:
+把本仓库作为 Codex Skill 放入你的 Codex skills 目录，例如：
 
 ```text
+%USERPROFILE%\.codex\skills\oprp-prompt-optimizer
+```
+
+目录结构应包含：
+
+```text
+SKILL.md
 README.md
-.gitignore
-LICENSE
-engineering-prompt-optimizer/
-  SKILL.md
-  agents/openai.yaml
-  references/
-  scripts/check_prompt_package.py
-promptgen-template/
-  memory/
-    profile.md
-    rubrics.md
-    golden-cases.md
-    model-strategy.md
+templates/
+examples/
+references/
+scripts/
+tests/
+agents/
 ```
 
-If you uploaded an outer `list_skill/` folder, the files still work, but GitHub may not show this README on the repository homepage. Move the contents of `list_skill/` to the repository root for a cleaner release.
+安装后重新打开 Codex，或重新启动当前 Codex 会话，让 Codex 重新加载 skills。
 
-`promptgen-template/` is a sanitized public template. It is not the real local `.promptgen/` memory directory.
+## 第二步：准备一个原始提示词
 
-## Install A Compatible Agent
+先写出你现在最原始、最口语化的需求，不需要一开始就写得专业。
 
-Install one of these first:
-
-- Codex: [OpenAI Codex docs](https://platform.openai.com/docs/codex) and [OpenAI Codex CLI](https://github.com/openai/codex)
-- Claude Code: [Anthropic Claude Code quickstart](https://docs.anthropic.com/en/docs/claude-code/quickstart)
-
-## Install The Skill
-
-### Codex
-
-From the repository root:
-
-```powershell
-New-Item -ItemType Directory -Force "$env:USERPROFILE\.codex\skills" | Out-Null
-Copy-Item -Path ".\engineering-prompt-optimizer" -Destination "$env:USERPROFILE\.codex\skills\engineering-prompt-optimizer" -Recurse -Force
-```
-
-If your files are still inside an outer `list_skill/` folder:
-
-```powershell
-New-Item -ItemType Directory -Force "$env:USERPROFILE\.codex\skills" | Out-Null
-Copy-Item -Path ".\list_skill\engineering-prompt-optimizer" -Destination "$env:USERPROFILE\.codex\skills\engineering-prompt-optimizer" -Recurse -Force
-```
-
-### Claude Code
-
-From the repository root:
-
-```powershell
-New-Item -ItemType Directory -Force "$env:USERPROFILE\.claude\skills" | Out-Null
-Copy-Item -Path ".\engineering-prompt-optimizer" -Destination "$env:USERPROFILE\.claude\skills\engineering-prompt-optimizer" -Recurse -Force
-```
-
-If your files are still inside an outer `list_skill/` folder:
-
-```powershell
-New-Item -ItemType Directory -Force "$env:USERPROFILE\.claude\skills" | Out-Null
-Copy-Item -Path ".\list_skill\engineering-prompt-optimizer" -Destination "$env:USERPROFILE\.claude\skills\engineering-prompt-optimizer" -Recurse -Force
-```
-
-Restart Codex or Claude Code after installation so the skill list reloads.
-
-## Optional Memory Template
-
-The real `.promptgen/` directory is local memory. Do not publish it.
-
-To create a clean local memory structure in your own project:
-
-```powershell
-New-Item -ItemType Directory -Force ".\.promptgen\memory" | Out-Null
-Copy-Item -Path ".\promptgen-template\memory\*" -Destination ".\.promptgen\memory" -Force
-```
-
-If your files are still inside an outer `list_skill/` folder:
-
-```powershell
-New-Item -ItemType Directory -Force ".\.promptgen\memory" | Out-Null
-Copy-Item -Path ".\list_skill\promptgen-template\memory\*" -Destination ".\.promptgen\memory" -Force
-```
-
-Use `.promptgen/memory/` for local preferences, rubrics, public or redacted golden cases, and model strategy. Do not store credentials, customer data, private logs, or unredacted examples there.
-
-## Usage Modes
-
-### Mode 1: Meta-prompt To Prompt Package
-
-Use this when you only have a rough idea.
-
-Example:
+例如：
 
 ```text
-Use engineering-prompt-optimizer.
-
-Meta-prompt:
-I want a prompt that helps me choose a tech stack for a small RAG app.
-
-Known constraints:
-- I may use local models.
-- I care about privacy.
-- I want the final prompt to be short enough for a weak model.
+我想让 Codex 帮我重构一个 Python 项目，要求能自动读文件、发现问题、修复代码、跑测试并给报告。
 ```
 
-The skill should first induce the real requirement, ask blocking questions if needed, then produce a task signature, metric, golden cases, prompt variants, judge prompt, and breakpoint plan.
+这个原始提示词可以很粗糙，但最好包含三类信息：
 
-### Mode 2: Prompt Review And Failure Diagnosis
+1. 你想让模型完成什么任务。
+2. 你希望模型输出什么结果。
+3. 你最担心哪里出错。
 
-Use this when you already wrote a prompt and want it judged harshly.
+## 第三步：按固定格式启动 OPRP
 
-Example:
+启动时必须使用三个顶层方括号：
 
 ```text
-Use engineering-prompt-optimizer to review this prompt.
-
-Prompt:
-<paste prompt>
-
-Goal:
-<what the prompt should accomplish>
-
-Golden examples:
-<optional input/output examples>
+[执行轮次][2-5个领域关键词][用户口语化初始提示词]
 ```
 
-The skill should start with a blunt verdict, name the broken parts, explain how they fail, then provide a fix or a stop condition.
+执行轮次至少为 4，推荐 6-12。轮次越多，审查越细，最终提示词越稳。
 
-### Mode 3: RAG / Agent Workflow Design
+示例：
 
-Use this when the prompt controls retrieval, tools, memory, citations, or multi-step agent loops.
-
-The skill must split the system into:
-
-- `query_rewrite`
-- `retrieval`
-- `reasoning`
-- `summarization`
-
-Each module needs inputs, outputs, metrics, and veto failures. This prevents bad retrieval from becoming a fluent but wrong final answer.
-
-### Mode 4: Local Or Weak Model Execution
-
-Use this when privacy, offline execution, cost, or context length matters.
-
-The skill should produce:
-
-- `prompt_short.md`
-- `prompt_standard.md`
-- `prompt_strong_generator.md`
-- `breakpoint_plan.md`
-- `decision_trace_summary.md`
-
-Long workflows should be split into clarification, retrieval/context collection, analysis, generation, and review.
-
-## Use Flow
-
-1. Start with a rough meta-prompt or an existing prompt.
-2. Add 3 to 10 golden input/output examples if you have them.
-3. Let the skill induce the real requirement and ask blocking questions.
-4. Confirm or correct the requirement summary.
-5. Generate the task signature and metric.
-6. Draft at least 10 golden cases; expand to 50 before production use.
-7. Generate short, standard, and strong-generator prompt variants.
-8. For RAG or Agent workflows, generate the module map.
-9. Use the judge prompt to score weak-model outputs.
-10. Update local `.promptgen/memory/` only with non-sensitive, reusable knowledge.
-
-## Trigger Conditions
-
-Use this skill when the user asks for:
-
-- prompt optimization, writing, rewriting, scoring, hardening, or generation
-- meta-prompt workflows
-- Codex, Claude, Cursor, coding agent, RAG, Agent loop, local-model, or weak-model prompt design
-- task definition, Metric, golden cases, judge prompt, prompt injection defense, or prompt quality review
-- technology stack recommendations inside a prompt workflow
-- requirement induction before implementation
-- no-foundation vibe coding detection
-
-Do not use it for ordinary coding tasks unless the real task is to design, critique, or evaluate the prompt/workflow that drives the coding task.
-
-## Optional Smithery MCP Links
-
-These MCPs are optional. The skill works without them, but they are useful when you want tool-backed verification, scoring, or injection scanning.
-
-- Technology stack web verification: [Exa Search](https://server.smithery.ai/exa)
-- Prompt quality scoring: [Prompt Quality Score - PQS](https://server.smithery.ai/onchaintel/pqs)
-- Prompt injection detection: [promptscan](https://server.smithery.ai/nicks-brn/promptscan)
-
-Smithery CLI:
-
-- [Smithery](https://smithery.ai)
-
-Typical discovery flow:
-
-```powershell
-smithery mcp search "web search"
-smithery mcp search "prompt evaluation"
-smithery mcp search "prompt injection"
+```text
+[8][复杂编程, Codex, 自动化测试][我想让 Codex 帮我重构一个 Python 项目，要求能自动读文件、发现问题、修复代码、跑测试并给报告。]
 ```
 
-## Validate
+再比如：
 
-Validate the skill structure:
-
-```powershell
-python "$env:USERPROFILE\.codex\skills\.system\skill-creator\scripts\quick_validate.py" ".\engineering-prompt-optimizer"
+```text
+[6][论文写作, 文献综述, 降重][我想让模型帮我把论文初稿改成更像人工写的正式毕业论文。]
 ```
 
-Validate a generated prompt package:
+再比如：
 
-```powershell
-python -B ".\engineering-prompt-optimizer\scripts\check_prompt_package.py" ".\path\to\prompt-package"
+```text
+[7][数据分析, 报告, 图表][帮我写一个提示词，让模型根据 CSV 做分析、画图、解释结果并生成报告。]
 ```
 
-The package checker expects at least:
+## 第四步：理解每一轮在做什么
 
-- `task_signature.md`
-- `metric.md`
-- `golden_cases.md`
+OPRP 会把提示词优化拆成多个轮次。第一轮固定做需求理解和缺口扫描，最后一轮固定做最终合成，中间轮次根据总轮数安排不同审查角度。
 
-For RAG or Agent packages, it also expects `module_map.md` with module-level metrics.
+常见轮次包括：
 
-## Privacy Notes
+1. 需求理解与缺口扫描：确认目标、输入、输出、成功标准和缺失信息。
+2. 逻辑漏洞审查：检查任务是否前后矛盾，是否缺少数据源、评价标准或执行边界。
+3. 事实准确性与资料风险审查：区分用户提供事实、模型常识和需要核验的信息。
+4. 结构与执行稳定性优化：加入阶段、检查点、Todo-list、失败恢复和停止条件。
+5. DSPy 范式重构：把提示词组织成 Signature、Modules、Metric、Loop、Few-shot 等结构。
+6. 复杂任务组件化：把大任务拆成 3-5 个可独立执行的组件。
+7. 长任务不中断机制：加入进度摘要、上下文压缩、断点恢复和最终复核清单。
+8. 最终合成与交付：输出可直接复用的最终强提示词。
 
-Before uploading, keep these out of the repository:
+## 第五步：按提示补充材料
 
-- real `.promptgen/`
-- `.env`
-- API keys, tokens, credentials, and private keys
-- `__pycache__/`
-- `*.pyc`
-- local app session folders
+每一轮结束时，OPRP 通常会要求你选择下一步：
 
-This upload bundle intentionally contains only the skill package, public templates, and public documentation.
+```text
+[补料]
+[修正]
+[约束]
+[示例]
+[继续]
+[停止]
+```
+
+含义如下：
+
+```text
+[补料]：提供新资料，例如需求文档、代码说明、论文要求、评分标准、业务规则。
+[修正]：指出上一轮理解错了什么。
+[约束]：补充必须遵守的限制，例如不能联网、必须中文、必须保留某种格式。
+[示例]：提供你喜欢或不喜欢的输出例子。
+[继续]：不补充新资料，让 OPRP 基于当前假设继续下一轮。
+[停止]：提前结束，基于已有内容生成当前最优版本。
+```
+
+如果任务很复杂，建议使用 Material Capsule 格式补充资料。这样 OPRP 会先读资料摘要，再按需读取原文，避免把所有材料一次性塞进上下文。
+
+Material Capsule 的基本格式：
+
+```text
+[补料]
+id: material-001
+type: 需求文档
+source: 用户提供
+reliability: high
+freshness: current
+relevance: high
+status: confirmed
+summary: 这份材料说明任务目标、输入输出和验收标准。
+answers: 它回答了最终提示词需要覆盖哪些步骤。
+key_terms: 关键词1, 关键词2
+constraints: 必须遵守的限制
+conflicts: 暂无
+read_when: 当需要确认任务边界和验收标准时读取
+do_not_use_for: 不用于推断未写明的业务事实
+token_budget: medium
+
+Raw Material:
+这里放原始材料内容。
+```
+
+## 第六步：让 OPRP 逐轮重写提示词
+
+OPRP 每一轮都会对当前提示词版本做一次有边界的审查和重写。它不会把所有问题一次性混在一起处理，而是让每一轮只专注一个主要视角。
+
+你会看到类似结果：
+
+```text
+当前轮次：逻辑漏洞审查
+已读材料：material-001 的 Info Header
+本轮发现：缺少验收标准、缺少失败恢复规则
+本轮重写：prompt_v2
+Todo 更新：下一轮需要补充输出格式示例
+```
+
+如果你同意继续，只需要回复：
+
+```text
+[继续]
+```
+
+如果发现理解偏差，可以回复：
+
+```text
+[修正]
+这里说明需要修正的地方。
+```
+
+## 第七步：查看最终交付结果
+
+最后一轮会生成一个完整的最终提示词。最终提示词通常包含：
+
+1. 任务 Signature：明确输入字段、输出字段、约束和成功标准。
+2. Modules：把复杂任务拆成多个子模块，例如需求解析、资料索引、缺口审查、提示词生成、压力测试、最终合成。
+3. Metric：定义评分维度、权重、否决项和验收规则。
+4. Compiler-like Loop：用多角色循环模拟生成、评估、重写、复核。
+5. Demonstrations：说明 few-shot 示例应该如何选择和使用。
+6. Search Strategy：说明如何生成多个候选提示词并比较。
+7. Predict Strategy：说明最终提示词实际执行时如何推进任务。
+8. Todo-list 机制：让执行模型在长任务中持续维护 Done、Doing、Blocked、Next。
+9. 断点恢复机制：任务中断后可以根据上下文摘要和版本记录继续。
+10. 最终复核清单：交付前检查逻辑、事实、格式、风险和验收标准。
+
+## 第八步：把最终提示词用于真实任务
+
+拿到最终提示词后，可以直接复制到 Codex、ChatGPT 或其他大模型中执行真实任务。
+
+推荐使用方式：
+
+1. 先把最终提示词作为系统级或任务级指令。
+2. 再补充真实项目文件、论文材料、数据文件或业务规则。
+3. 要求模型按最终提示词里的阶段执行。
+4. 每个阶段结束时检查 Todo-list、风险日志和下一步计划。
+5. 如果任务中断，用最终提示词中的断点恢复协议继续。
+
+## 全流程能达到的效果
+
+完成一次 OPRP 流程后，原始提示词会从“口语化请求”变成“可执行的任务系统”。
+
+它通常会提升这些方面：
+
+1. 目标更清楚：模型知道要完成什么，不会只做表面润色。
+2. 输入更明确：模型知道需要哪些材料，哪些事实不能凭空编造。
+3. 输出更稳定：结果有固定结构、验收标准和复核清单。
+4. 长任务更可靠：通过 Todo-list、阶段检查点、上下文压缩和断点恢复降低中断风险。
+5. 复杂任务更好拆解：大任务会被拆成多个组件，各组件有输入、输出、风险和验收标准。
+6. 风险更可控：未核验事实、缺失材料、用户未确认决策会被明确标记。
+7. 可复用性更强：最终提示词可以迁移到类似项目，不需要每次从零开始写。
+
+## 推荐轮次数
+
+```text
+4 轮：适合简单提示词快速增强。
+6 轮：适合普通复杂任务，覆盖主要审查视角。
+8 轮：适合 Codex、论文、数据分析、RAG、Agent 等复杂任务。
+10-12 轮：适合高风险长任务，需要更多压力测试、证据审查和验收规则。
+```
+
+## 最小可用示例
+
+直接发送：
+
+```text
+[6][客服, 退款, 工单][帮我写个能自动处理退款工单的提示词]
+```
+
+然后按每轮提示回复：
+
+```text
+[继续]
+```
+
+如果有业务规则，就回复：
+
+```text
+[补料]
+id: refund-policy-001
+type: 业务规则
+source: 公司退款政策
+reliability: high
+freshness: current
+relevance: high
+status: confirmed
+summary: 说明哪些订单可以退款，哪些订单不能退款。
+answers: 回答退款判断条件和客服回复边界。
+key_terms: 退款, 工单, 订单状态
+constraints: 不得承诺超出政策的赔偿
+conflicts: 暂无
+read_when: 判断退款规则时读取
+do_not_use_for: 不用于生成公司没有承诺的优惠政策
+token_budget: medium
+
+Raw Material:
+这里粘贴退款政策原文。
+```
+
+完成 6 轮后，你会得到一个可以直接用于“退款工单自动处理”的完整强提示词。

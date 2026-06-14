@@ -1,0 +1,5 @@
+interface:
+  display_name: "OPRP Prompt Optimizer"
+  short_description: "Refine rough prompts through multi-round DSPy-style loops."
+  default_prompt: "Use $oprp-prompt-optimizer to refine a rough prompt through an OPRP multi-round DSPy-style optimization loop."
+

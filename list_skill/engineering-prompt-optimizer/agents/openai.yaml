@@ -1,4 +1,0 @@
-interface:
-  display_name: "Engineering Prompt Optimizer"
-  short_description: "Turn rough meta-prompts into metric-driven prompt packages."
-  default_prompt: "Use this skill to induce requirements from a rough meta-prompt, design metrics and golden cases, split RAG or Agent workflows into modules, and produce prompt variants for strong and local weak models."
