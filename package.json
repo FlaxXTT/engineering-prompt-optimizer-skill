@@ -1,0 +1,27 @@
+{
+  "name": "engineering-prompt-optimizer-skill",
+  "version": "1.0.0",
+  "description": "Install the 工程化提示词优化 Codex skill with one npm-style command.",
+  "license": "MIT",
+  "bin": {
+    "engineering-prompt-optimizer-skill": "./bin/install.js",
+    "install-engineering-prompt-optimizer": "./bin/install.js"
+  },
+  "files": [
+    "SKILL.md",
+    "README.md",
+    "agents",
+    "bin",
+    "examples",
+    "references",
+    "scripts",
+    "templates",
+    "tests"
+  ],
+  "scripts": {
+    "test:install": "node ./bin/install.js --target ./tmp-install-check --no-backup"
+  },
+  "engines": {
+    "node": ">=16"
+  }
+}

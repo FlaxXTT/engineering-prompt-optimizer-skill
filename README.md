@@ -6,10 +6,37 @@
 
 ## 第一步：安装 Skill
 
-把本仓库作为 Codex Skill 放入你的 Codex skills 目录，例如：
+推荐使用 npm 风格的一键安装。电脑上只要有 Node.js/npm，就可以直接运行：
+
+```powershell
+npx github:FlaxXTT/engineering-prompt-optimizer-skill
+```
+
+这个命令会把本 skill 安装到：
 
 ```text
 %USERPROFILE%\.codex\skills\oprp-prompt-optimizer
+```
+
+如果你已经安装过旧版本，安装器会先把旧目录备份成：
+
+```text
+oprp-prompt-optimizer.backup-时间戳
+```
+
+然后再写入新版本。
+
+也可以先全局安装，再执行安装命令：
+
+```powershell
+npm install -g github:FlaxXTT/engineering-prompt-optimizer-skill
+engineering-prompt-optimizer-skill
+```
+
+如果你想安装到自定义目录，可以使用：
+
+```powershell
+npx github:FlaxXTT/engineering-prompt-optimizer-skill --target "D:\codex-skills\oprp-prompt-optimizer"
 ```
 
 目录结构应包含：
@@ -26,6 +53,8 @@ agents/
 ```
 
 安装后重新打开 Codex，或重新启动当前 Codex 会话，让 Codex 重新加载 skills。
+
+如果不想使用 npm，也可以手动把本仓库内容复制到上面的 Codex skills 目录。
 
 ## 第二步：准备一个原始提示词
 
