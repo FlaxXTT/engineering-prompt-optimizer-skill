@@ -3,7 +3,7 @@ name: oprp-prompt-optimizer
 description: 把用户简陋的口语化提示词，通过多轮“生成→评估→补料→重写”的 OPRO/Self-Refine 自迭代循环，编译成 DSPy 范式（Signature/Module/Metric/Loop/Few-shot）的强提示词，目标是让大模型能长时间自主、分阶段、尽量不中断地工作。只要用户想优化/打磨/重写提示词、想要能驱动长任务或复杂任务的 prompt、提到 DSPy 或提示词工程、或给出一个粗糙 prompt 想让它“变强”，就使用本 Skill——即便用户没明说“优化提示词”或“DSPy”。
 ---
 
-# OPRP Prompt Optimizer
+# 工程化提示词优化
 
 ## Purpose
 

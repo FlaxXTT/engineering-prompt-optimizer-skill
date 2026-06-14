@@ -1,5 +1,4 @@
 interface:
-  display_name: "OPRP Prompt Optimizer"
-  short_description: "Refine rough prompts through multi-round DSPy-style loops."
-  default_prompt: "Use $oprp-prompt-optimizer to refine a rough prompt through an OPRP multi-round DSPy-style optimization loop."
-
+  display_name: "工程化提示词优化"
+  short_description: "把粗糙提示词优化为适合复杂任务和长任务的工程化提示词。"
+  default_prompt: "Use $oprp-prompt-optimizer to refine a rough prompt into an engineering-grade prompt through an OPRP multi-round DSPy-style optimization loop."
